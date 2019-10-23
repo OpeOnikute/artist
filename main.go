@@ -55,9 +55,8 @@ func addWaterMark(bgImg, watermark string) {
 	outName := fmt.Sprintf("watermark-new-%s", watermark)
 
 	src := openImage(bgImg)
-	mark := openImage(watermark)
 
-	markFit := imaging.Fit(mark, 200, 200, imaging.Lanczos)
+	markFit := resizeImage(watermark, "200x200")
 
 	bgDimensions := src.Bounds().Max
 	markDimensions := markFit.Bounds().Max
@@ -73,16 +72,12 @@ func addWaterMark(bgImg, watermark string) {
 
 func placeImage(outName, bgImg, markImg, markDimensions, locationDimensions string) {
 
-	// Resize the mark to fit these dimenstions.
-	markWidth, markHeight := parseCoordinates(markDimensions, "x")
-
 	// Coordinate to super-impose on. e.g. 200x500
 	locationX, locationY := parseCoordinates(locationDimensions, "x")
 
 	src := openImage(bgImg)
-	mark := openImage(markImg)
 
-	markFit := imaging.Fit(mark, markWidth, markHeight, imaging.Lanczos)
+	markFit := resizeImage(markImg, markDimensions)
 
 	dst := imaging.Paste(src, markFit, image.Pt(locationX, locationY))
 
@@ -133,6 +128,15 @@ func openImage(name string) image.Image {
 		log.Fatalf("failed to open image: %v", err)
 	}
 	return src
+}
+
+func resizeImage(image, dimensions string) image.Image {
+
+	width, height := parseCoordinates(dimensions, "x")
+
+	src := openImage(image)
+
+	return imaging.Fit(src, width, height, imaging.Lanczos)
 }
 
 func getHelp() {
